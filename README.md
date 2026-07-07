@@ -242,36 +242,6 @@ Essa abordagem pode ser útil para entender, de forma exploratória, como as ima
 
 ---
 
-## 📌 Próximos passos do estudo
-
-Nesta fase da IC, o objetivo principal é entender o problema e construir uma base teórica sólida antes de partir para a implementação. As próximas etapas podem incluir:
-
-- aprofundar o estudo sobre flotação;
-- entender melhor os parâmetros visuais da espuma;
-- estudar o que cada família de modelo faz;
-- verificar quais métodos fazem mais sentido para os dados disponíveis;
-- discutir com o orientador e com o doutorando a estratégia mais adequada para aplicação prática.
-
-🔗 [Voltar ao sumário](#-sumário)
-
----
-
-## 📚 Referências iniciais
-
-- [Jameson cell - Wikipedia](https://en.wikipedia.org/wiki/Jameson_cell)
-- [Handbook of Flotation Reagents: Chemistry, Theory and Practice](https://books.google.com/books/about/Handbook_of_Flotation_Reagents_Flotation.html?id=mC9YlAEACAAJ)
-- [Flotation of Gold and Gold-Bearing Ores](https://doi.org/10.1016/B978-0-444-63658-4.00020-7)
-- [Advancements in Machine Learning for Optimal Performance in Flotation Processes: A Review](https://pdfs.semanticscholar.org/e060/6057ebd9ba83f56963cd276e7c4533859810.pdf)
-- [Flotation froth image segmentation using Mask R-CNN](https://www.sciencedirect.com/science/article/abs/pii/S0892687522005696)
-- [A semantic segmentation-based algorithm for fast flotation froth image analysis](https://www.sciencedirect.com/science/article/abs/pii/S0263876224004337)
-- [Lecture 15: Detection and Segmentation - CS231n](https://cs231n.stanford.edu/slides/2021/lecture_15.pdf)
-- [Computer vision techniques explained](https://avutec.com/computer-vision-techniques/)
-- [Aspersão automática de vias: Tecnologia de visão computacional na mineração](https://revistaminerios.com/aspersao-automatica-vias-mineracao/)
-
-🔗 [Voltar ao sumário](#-sumário)
-
----
-
 ## 📦 Módulo 6: Deep Learning e Visão Computacional
 
 Neste módulo, o objetivo é entender algumas das principais abordagens de Deep Learning usadas em visão computacional e pensar em como elas podem ser aplicadas à análise de imagens de flotação. Aqui a ideia não é ainda implementar tudo, mas compreender o papel de cada modelo e em que tipo de problema ele pode ajudar.
