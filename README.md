@@ -13,6 +13,10 @@ O foco principal deste estudo é compreender como imagens de flotação na miner
 - [📦 Módulo 3: Flotação por Espuma e Dinâmica de Separação](#-módulo-3-flotação-por-espuma-e-dinâmica-de-separação)
 - [📦 Módulo 4: Dinâmica da Espuma e a IA](#-módulo-4-dinâmica-da-espuma-e-a-ia)
 - [📦 Módulo 5: Machine Learning e Tratamento de Imagem](#-módulo-5-machine-learning-e-tratamento-de-imagem)
+- [📦 Módulo 6: Deep Learning e Visão Computacional](#-módulo-6-deep-learning-e-visão-computacional)
+- [📦 Módulo 7: Processamento de Vídeo e Rastreamento](#-módulo-7-processamento-de-vídeo-e-rastreamento)
+- [📦 Módulo 8: Como usar os modelos no projeto](#-módulo-8-como-usar-os-modelos-no-projeto)
+- [📦 Módulo 9: Até aqui — o que já foi feito na prática](#-módulo-9-até-aqui--o-que-já-foi-feito-na-prática)
 - [📌 Próximos passos do estudo](#-próximos-passos-do-estudo)
 - [📚 Referências iniciais](#-referências-iniciais)
 
@@ -428,6 +432,62 @@ Uma estrutura possível seria:
 - `results/` para salvar previsões, gráficos e análises.
 
 Essa organização ajuda a deixar o projeto mais limpo e facilita quando eu precisar revisar o que foi feito.
+
+## 📦 Módulo 9: Até aqui — o que já foi feito na prática
+
+> 💡 **Nota do projeto:** Este módulo documenta o artigo que o Fernando (doutorando do grupo, sob orientação do professor Ardson) compartilhou sobre o andamento real da pesquisa (novembro de 2025), aplicando na prática tudo o que os Módulos 5-8 discutiram em teoria. É o primeiro resultado concreto de visão computacional rodando em dados reais de uma planta de ouro.
+
+### 🎯 O que o artigo fez, em resumo
+O Fernando coletou vídeo real da espuma de flotação em uma planta de ouro, treinou modelos YOLO para segmentar (desenhar o contorno exato) das bolhas e do tanque, e usou geometria para transformar esses contornos em duas métricas quantitativas:
+- distribuição de tamanho das bolhas;
+- fração da superfície do tanque coberta por espuma.
+
+Essas duas métricas são justamente os parâmetros que, nos Módulos 3 e 4, eu já tinha identificado como sendo avaliados hoje "no olho" pelos operadores.
+
+### 📐 Método do Shoelace (Fórmula do Agrimensor)
+Uma peça nova que não estava nos módulos anteriores: depois que o modelo desenha o polígono de uma bolha (ou do tanque), é preciso calcular a área desse polígono. O Shoelace faz isso a partir das coordenadas dos vértices:
+
+$$A = \frac{1}{2}\left|\sum (x_i y_{i+1} - x_{i+1} y_i)\right|$$
+
+Para funcionar, o polígono precisa ser simples (sem cruzar a própria borda), fechado, com vértices em ordem sequencial e no mínimo 3 vértices. É a ponte matemática entre "o modelo desenhou o contorno" e "eu tenho um número de área".
+
+### 🧪 Como os dados foram coletados e preparados
+1. Vídeo gravado com câmera fixa, em condição operacional próxima do ideal (espuma estável, bolhas de tamanho médio).
+2. Vídeo decomposto em frames.
+3. Pré-processamento: testaram contraste, brilho, filtros e sharpening — o sharpening simples foi o único que melhorou a nitidez dos contornos sem distorcer a imagem.
+4. Rotulagem manual no Roboflow, com máscaras poligonais em cada bolha. Por ser trabalhoso, o dataset ficou pequeno: **15 imagens de treino, 3 teste, 3 validação** (bolhas) e um segundo dataset separado, menor ainda, só para o contorno do tanque.
+
+### 🏋️ Treinamento dos modelos
+Foram comparadas as famílias **YOLOv8** e **YOLOv11**, cada uma em 5 tamanhos (nano, small, medium, large, xlarge) e 3 configurações de épocas (16, 32, 64):
+- 30 combinações treinadas para segmentação de bolhas;
+- 18 combinações para segmentação do tanque (sem large/xlarge, por ser tarefa mais simples).
+
+### 📊 O achado mais importante: menor nem sempre é pior
+Contrariando a intuição comum de deep learning, **modelos pequenos treinados por mais tempo venceram os modelos grandes**:
+- o melhor resultado para bolhas foi o **YOLO11s com 64 épocas**, superando até o YOLOv8x e o YOLO11x.
+- isso acontece porque o dataset é muito pequeno (15 imagens); modelos grandes têm parâmetros demais e acabam decorando os dados (overfitting) em vez de aprender um padrão generalizável.
+- prova disso: os modelos pequenos melhoraram de forma consistente com mais épocas, enquanto os modelos grandes estagnaram ou pioraram.
+
+Para o tanque, a tarefa é mais fácil (objeto único e bem definido), então quase todos os modelos foram quase perfeitos — o Fernando escolheu o **YOLOv8m com 16 épocas**, o mais leve entre os que empataram no topo.
+
+Um ponto de atenção: a métrica que mede a precisão do contorno (não só "achou a bolha", mas "o contorno está certo") ainda ficou bem abaixo da métrica de detecção simples. Ou seja, o modelo acha as bolhas bem, mas o contorno exato — que é a base do cálculo de área — ainda tem espaço pra melhorar.
+
+### 📈 Resultado físico: distribuição log-normal
+Com o modelo final, a distribuição de área das bolhas seguiu uma curva **log-normal**, não uma normal comum — confirmando resultado já visto na literatura para sistemas gás-líquido-sólido. O pico ficou entre 300-400 pixels², batendo com o que os operadores da planta relataram qualitativamente como sinal de boa performance (predominância de bolhas de tamanho médio).
+
+### 🚀 Próximos passos citados pelo Fernando
+- Ampliar e refinar o dataset (mais imagens, anotação melhor).
+- Adicionar uma nova métrica: **taxa de desprendimento de bolhas** da superfície, ligada à estabilidade da espuma e à recuperação metálica.
+- Otimização sistemática dos hiperparâmetros de confiança e IoU na inferência.
+
+Isso conecta diretamente com o Módulo 7 (rastreamento de objetos): a "taxa de desprendimento" provavelmente vai exigir acompanhar a mesma bolha entre frames consecutivos, não só detectá-la isoladamente em cada imagem.
+
+### 📚 Referência principal
+- Vianna, F. C. A. S. (Fernando). *Computer vision system for real-time flotation monitoring*. Artigo do doutorando, sob orientação do Prof. Ardson Vianna, novembro de 2025.
+
+🔗 [Voltar ao sumário](#-sumário)
+
+---
 
 ### 📚 Referências principais
 - [Ultralytics VS Code Extension](https://docs.ultralytics.com/integrations/vscode)
